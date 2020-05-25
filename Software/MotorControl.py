@@ -2,7 +2,7 @@ import os
 try:
     import RPi.GPIO as GPIO
 except ModuleNotFoundError:
-    print("installing the necessary modules please wait...")
+    print("installing the necessary modules please wait...(Error Code: 0002)")
     moduleProceed = input("Do you want to proceed (y/n):")
     if(moduleProceed == "y"):
         os.system("python3 -m pip install RPi")
@@ -147,6 +147,5 @@ try:
             GPIO.output(M4in2, w2) 
             GPIO.output(M4in3, w3) 
             GPIO.output(M4in4, w4)
-except NameError as exception:
-    if(exception== "GPIO"): 
-        print("RPi library causing the error. You should install on the terminal by writing this command 'python -m pip install RPi' ")
+except NameError as ne:
+    print("error ocurred while calling the gpio module.Probable cause: Couldn't import RPi library... (Error Code: 0009)")

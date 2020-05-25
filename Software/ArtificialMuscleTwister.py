@@ -1,6 +1,6 @@
 """
 Program Akışı;
-
+Kısaltmalar;
 Asansör Motor M1
 Asansör Ucu Motor M2
 Kanca Motor M3
@@ -9,7 +9,7 @@ Limit Switch Asansör LimSW1
 Limit Switch Bobin LimSW2
 Select Button Bttn1
 Stop Button Bttn2
-
+Program Akışı;
 -Program başlayınca motorlar başlangıç konumuna gelmeli.
     -Asansör motor M1
     -bobin kayar mekanizma M4
@@ -72,14 +72,30 @@ Bttn2  -->> GPIO26
 """
 import time
 import os
-from MotorControl import forward
-from MotorControl import backwards
-from MotorControl import bimotor
-from MotorControl import bimotor2
+try: 
+    from MotorControl import forward
+except ImportError as x:
+    print("cannot import "+str(x)+" function from its module (Error Code: 0004)")
+try:
+    from MotorControl import backwards
+except ImportError as x:
+    print("cannot import "+str(x)+" function from its module (Error Code: 0005)")
+try:
+    from MotorControl import bimotor
+except ImportError as x:
+    print("cannot import "+str(x)+" function from its module (Error Code: 0006)")
+try:
+    from MotorControl import bimotor2
+except ImportError as x:
+    print("cannot import "+str(x)+" function from its module (Error Code: 0007)")
+try:
+    from Test import SystemTest
+except ImportError as x:
+    print("cannot import "+str(x)+" function from its module (Error Code: 0008)")
 try:
     import RPi.GPIO as GPIO
 except ModuleNotFoundError:
-    print("installing the necessary modules please wait...")
+    print("installing the necessary modules please wait... (Error Code: 0001)")
     moduleProceed = input("Do you want to proceed (y/n):")
     if(moduleProceed == "y"):
         os.system("python -m pip install RPi")
@@ -114,109 +130,99 @@ M4in1 = 2
 M4in2 = 3
 M4in3 = 7
 M4in4 = 8
-
 #for lift control motor  M1 limit switch 
 LimSW1 = 21
-GPIO.setup(LimSW1, GPIO.IN)
-
+try:
+    GPIO.setup(LimSW1, GPIO.IN)
+except NameError as ne:
+    print("error ocurred while calling the gpio module.Probable cause: Couldn't import RPi library... (Error Code: 0009)")
 #for resistance feeder motor M4 limit switch
 LimSW2 = 20
-GPIO.setup(LimSW2, GPIO.IN)
-
+try:
+    GPIO.setup(LimSW2, GPIO.IN)
+except NameError as ne:
+    print("error ocurred while calling the gpio module.Probable cause: Couldn't import RPi library... (Error Code: 0009)")
 #for Select button 
 Bttn1 = 19
-GPIO.setup(Bttn1, GPIO.IN)
-
+try:
+    GPIO.setup(Bttn1, GPIO.IN)
+except NameError as ne:
+    print("error ocurred while calling the gpio module.Probable cause: Couldn't import RPi library... (Error Code: 0009)")
 #for Emergency Stop button 
 Bttn2 = 26
-GPIO.setup(Bttn2, GPIO.IN)
-
-while (GPIO.input(Bttn2)==0): #program will work until emergency button is pressed or user decide not to restart the program.
-    print("Artificial Muscle Twister v1.0 \n Author: Emin Basoren \n Welcome to Aritificial Muscle Twister program. \n ! Please check the pins twice !")
-    diagnosticProceed = input("Do you want to Test the motors and Buttons? (y/n):")
-    if(diagnosticProceed == "y"):
-        #test program
-        print("test program starting")
-        forward(1,1,"M1")
-        time.sleep(1)
-        backwards(1,1,"M1")
-        time.sleep(1)
-        forward(1,1,"M2")
-        time.sleep(1)
-        backwards(1,1,"M2")
-        time.sleep(1)
-        forward(1,1,"M3")
-        time.sleep(1)
-        backwards(1,1,"M3")
-        time.sleep(1)
-        forward(1,1,"M4")
-        time.sleep(1)
-        backwards(1,1,"M4")
-        time.sleep(1)
-        print("please press the select button..")
-        if((GPIO.input(Bttn1)==1))
-            print("Select Button works quite good")
-        print("please press the emergency stop button..")
-        if((GPIO.input(Bttn2)==1))
-            print("Emergency Stop Button works quite good")
-        
-    else:
-        proceedKey = input("please write 'y' and hit enter to proceed... if you dont want to proceed write 'n' instead of 'y' and hit enter... \n")
-        if(str(proceedKey) == 'y'):
-            print("Here it begins...")
-            time.sleep(1)
-            while(GPIO.input(LimSW1)==0): #Lift mechanism will rise until touches the limit switch
-                forward(0.1,1,"M1") #M1
-            while(GPIO.input(LimSW2)==0): #Resistance wire slider mechanism will rise until touches the limit switch
-                backwards(0.1,1,"M4") #M4
-            len1 = 718.05 #length between the upper side of the lift mechanism and limit switch
-            Step1 = (len1/1.25)*400 #1.25 is the step length of the threaded rod and 400 is the step motor's step count to make a one tour
-            backwards(0.1,Step1,"M1") #M1
-            length = input("please enter the length (in mm) of the fishing line you are going to use...")
-            print("please attach the fishing line to twister motor and lift motor on both ends...")
-            proceedKey2 = input("when you're done please write 'y' and hit enter...")
-            if(str(proceedKey2) == 'y'):
-                len2 = length-47.1 #47.1 is the length of hook to hook
-                Step2 = (len2/1.25)*400
-                forward(0.1,Step2,"M1") # clockwise move of M1 makes lift mechanism go up
-                len3 = (789.9 - len2)-106 # 789.9 mm is the max length of the main threaded rod 106 is the length between limit switch1 and wire feeder 
-                Step3 = (len3/1.25)*400
-                forward(0.1,Step3,"M4") # clockwise move of M4 makes resistance wire slider mechanism go down
-                print("please attach the resistance wire on the upper end of the fishing line...")
-                proceedKey3 = input("when you're done please write 'y' and hit enter...")
-                if(str(proceedKey3) == 'y'):
-                    print("resistance wiring process starting")
-                    len4 = 720.29-len3 #720.29 is the max length of wire feeder mechanism can go
-                    Step4 = (len4/1.25)*400
-                    bimotor(0.2,Step4,"M2","M3")
-                    forward(1.25,Step4,"M4")
-                    print("Please cut the resistance wire and make sure it is tight on the fishing line's both ends.")
-                    proceedKey4 = input("when you're done please write 'y' and hit enter...")
-                    if(str(proceedKey4) == 'y'):
-                        while(GPIO.input(LimSW2)==0):
-                            backwards(0.1,1,"M4") #M4
-                        print("twisting process starting")
-                        bimotor2(0.2,Step2,"M2","M3")
-                        backwards(0.4,Step2,"M1")
-                        print("Process finished. Program will restart shortly after this.")
-                        proceedKey5 = input("If you dont want the program to restart please write 'y' and hit enter...")
-                        if(proceedKey5 == "y"):
-                            break;
+try:
+    GPIO.setup(Bttn2, GPIO.IN)
+except NameError as ne:
+    print("error ocurred while calling the gpio module.Probable cause: Couldn't import RPi library... (Error Code: 0009)")
+try:
+    while (GPIO.input(Bttn2)==0): #program will work until emergency button is pressed or user decide not to restart the program.
+        print("Artificial Muscle Twister v1.0 \n Author: Emin Basoren \n Welcome to Aritificial Muscle Twister program. \n ! Please check the pins twice !")
+        diagnosticProceed = input("Do you want to Test the motors and Buttons? (y/n):")
+        if(diagnosticProceed == "y"):
+            #test program
+            try:
+                SystemTest()
+            except:
+                print("some error occured while system test phase")
+        else:
+            proceedKey = input("please write 'y' and hit enter to proceed... if you dont want to proceed write 'n' instead of 'y' and hit enter... \n")
+            if(str(proceedKey) == 'y'):
+                print("Here it begins...")
+                time.sleep(1)
+                while(GPIO.input(LimSW1)==0): #Lift mechanism will rise until touches the limit switch
+                    forward(0.1,1,"M1") #M1
+                while(GPIO.input(LimSW2)==0): #Resistance wire slider mechanism will rise until touches the limit switch
+                    backwards(0.1,1,"M4") #M4
+                len1 = 718.05 #length between the upper side of the lift mechanism and limit switch
+                Step1 = (len1/1.25)*400 #1.25 is the step length of the threaded rod and 400 is the step motor's step count to make a one tour
+                backwards(0.1,Step1,"M1") #M1
+                length = input("please enter the length (in mm) of the fishing line you are going to use...")
+                print("please attach the fishing line to twister motor and lift motor on both ends...")
+                proceedKey2 = input("when you're done please write 'y' and hit enter...")
+                if(str(proceedKey2) == 'y'):
+                    len2 = length-47.1 #47.1 is the length of hook to hook
+                    Step2 = (len2/1.25)*400
+                    forward(0.1,Step2,"M1") # clockwise move of M1 makes lift mechanism go up
+                    len3 = (789.9 - len2)-106 # 789.9 mm is the max length of the main threaded rod 106 is the length between limit switch1 and wire feeder 
+                    Step3 = (len3/1.25)*400
+                    forward(0.1,Step3,"M4") # clockwise move of M4 makes resistance wire slider mechanism go down
+                    print("please attach the resistance wire on the upper end of the fishing line...")
+                    proceedKey3 = input("when you're done please write 'y' and hit enter...")
+                    if(str(proceedKey3) == 'y'):
+                        print("resistance wiring process starting")
+                        len4 = 720.29-len3 #720.29 is the max length of wire feeder mechanism can go
+                        Step4 = (len4/1.25)*400
+                        bimotor(0.2,Step4,"M2","M3")
+                        forward(1.25,Step4,"M4")
+                        print("Please cut the resistance wire and make sure it is tight on the fishing line's both ends.")
+                        proceedKey4 = input("when you're done please write 'y' and hit enter...")
+                        if(str(proceedKey4) == 'y'):
+                            while(GPIO.input(LimSW2)==0):
+                                backwards(0.1,1,"M4") #M4
+                            print("twisting process starting")
+                            bimotor2(0.2,Step2,"M2","M3")
+                            backwards(0.4,Step2,"M1")
+                            print("Process finished. Program will restart shortly after this.")
+                            proceedKey5 = input("If you dont want the program to restart please write 'y' and hit enter...")
+                            if(proceedKey5 == "y"):
+                                break;
+                        else:
+                            print("Unable to detect what you want program will exit shortly...(Error Code: 0010)")
+                            time.sleep(1)
+                            exit()
                     else:
-                        print("Unable to detect what you want program will exit shortly...")
+                        print("Unable to detect what you want program will exit shortly...(Error Code: 0010)")
                         time.sleep(1)
                         exit()
                 else:
-                    print("Unable to detect what you want program will exit shortly...")
+                    print("Unable to detect what you want program will exit shortly...(Error Code: 0010)")
                     time.sleep(1)
                     exit()
+            if(proceedKey=="n"):
+                exit()
             else:
-                print("Unable to detect what you want program will exit shortly...")
+                print("Unable to detect what you want program will exit shortly...(Error Code: 0010)")
                 time.sleep(1)
                 exit()
-        if(proceedKey=="n"):
-            exit()
-        else:
-            print("Unable to detect what you want program will exit shortly...")
-            time.sleep(1)
-            exit()
+except NameError as ne:
+    print("error ocurred while calling the gpio module.Probable cause: Couldn't import RPi library... (Error Code: 0009)")

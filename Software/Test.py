@@ -1,11 +1,18 @@
 import time
 import os
-from MotorControl import forward
-from MotorControl import backwards
+try: 
+    from MotorControl import forward
+except ImportError as x:
+    print("cannot import "+str(x)+" function from its module (Error Code: 0004)")
+try:
+    from MotorControl import backwards
+except ImportError as x:
+    print("cannot import "+str(x)+" function from its module (Error Code: 0005)")
+
 try:
     import RPi.GPIO as GPIO
 except ModuleNotFoundError:
-    print("installing the necessary modules please wait...")
+    print("installing the necessary modules please wait... (Error Code: 0003)")
     moduleProceed = input("Do you want to proceed (y/n):")
     if(moduleProceed == "y"):
         os.system("python -m pip install RPi")
@@ -43,3 +50,6 @@ def SystemTest():
     print("please press the emergency stop button..")
     if((GPIO.input(Bttn2)==1)):
         print("Emergency Stop Button works quite good")
+
+if(__init__ == "__main__"):
+    SystemTest()
